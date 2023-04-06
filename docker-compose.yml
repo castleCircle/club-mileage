@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0.28
+    platform: linux/amd64
+    environment:
+      - MYSQL_DATABASE=club
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=club
+      - MYSQL_PASSWORD=club
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
