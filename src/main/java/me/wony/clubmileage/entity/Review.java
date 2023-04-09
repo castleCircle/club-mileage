@@ -13,9 +13,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review extends BaseEntity{
 
@@ -35,7 +37,7 @@ public class Review extends BaseEntity{
   private String content;
 
   @OneToMany(mappedBy = "review", orphanRemoval = true ,cascade = CascadeType.ALL)
-  private Set<Photo> attachedPhotoIds = new HashSet<>();
+  private Set<Photo> attachedPhotos = new HashSet<>();
 
   @Builder
   public Review(UUID id, User user, Place place, String content) {
@@ -46,8 +48,20 @@ public class Review extends BaseEntity{
   }
 
   public void addPhoto(Photo photo){
-    attachedPhotoIds.add(photo);
+    attachedPhotos.add(photo);
     photo.addReview(this);
+  }
+
+  public void deletePhoto(Photo photo){
+    attachedPhotos.remove(photo);
+  }
+
+  public void changeContent(String content){
+    this.content = content;
+  }
+
+  public boolean hasAttachedPhoto(){
+    return !attachedPhotos.isEmpty();
   }
 
 }

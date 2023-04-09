@@ -72,6 +72,7 @@ create table point
     user_id    binary(16) NOT NULL COMMENT '사용자 Id',
     review_id  binary(16) COMMENT '리뷰 Id',
     type        varchar(255) NOT NULL COMMENT '리뷰/..',
+    status     bit       DEFAULT 1 COMMENT '활성화여부',
     amount     bigint     NOT NULL,
     created_by bigint     NOT NULL,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,

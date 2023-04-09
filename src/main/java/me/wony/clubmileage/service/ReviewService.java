@@ -1,6 +1,7 @@
 package me.wony.clubmileage.service;
 
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static me.wony.clubmileage.entity.Point.createPointOfReview;
 import static me.wony.clubmileage.type.EventActionType.ofCode;
 import static org.springframework.util.StringUtils.hasText;
@@ -78,19 +79,7 @@ public class ReviewService {
     }
 
 
-    int point = 0;
-
-    if(hasText(dto.getContent())){
-      point++;
-    }
-
-    if(dto.getAttachedPhotoIds().size() > 0){
-      point++;
-    }
-
-    if(isFirstReview(dto)){
-      point++;
-    }
+    int point = calculatePoint(dto);
 
     final Review review = Review.builder()
         .id(dto.getReviewId())
@@ -119,15 +108,94 @@ public class ReviewService {
     return new EventResponseDto();
   }
 
+  private int calculatePoint(final EventRequestDto dto){
+    int point = 0;
+
+    if(hasText(dto.getContent())){
+      point++;
+    }
+
+    if(dto.getAttachedPhotoIds().size() > 0){
+      point++;
+    }
+
+    if(isFirstReview(dto)){
+      point++;
+    }
+
+    return point;
+  }
+
   private boolean isFirstReview(final EventRequestDto dto){
     return !reviewRepository.existsReviewAtPlace(dto.getPlaceId());
   }
 
   public EventResponseDto update(final EventRequestDto dto){
+
+    Review review = reviewRepository.findById(dto.getReviewId())
+        .orElseThrow(() -> new ResourceNotFoundException("reviewId: " + dto.getReviewId() + "cannot be found"));
+
+    boolean hasPhotos = review.hasAttachedPhoto();
+
+    changePhoto(review,dto);
+
+    int point = 0;
+
+    if(hasOnlyContentBefore(review,hasPhotos,!dto.getAttachedPhotoIds().isEmpty())){
+      point++;
+    }
+
+    if(isDeletePhotoAll(review,hasPhotos)){
+      point--;
+    }
+
+    pointRepository.save(createPointOfReview(review.getUser(),review,point));
+
+    review.changeContent(dto.getContent());
+
     return new EventResponseDto();
   }
 
+  private void changePhoto(final Review review, final EventRequestDto dto){
+    review.getAttachedPhotos().stream()
+        .filter(photo -> !dto.getAttachedPhotoIds().contains(photo.getId()))
+        .collect(toUnmodifiableList())
+        .forEach(review::deletePhoto);
+
+    for(final UUID photoIds : dto.getAttachedPhotoIds()){
+      final Photo photo = photoRepository.findById(photoIds)
+          .orElseThrow(
+              () -> new ResourceNotFoundException("photoId: " + photoIds + "cannot be found"));
+      review.addPhoto(photo);
+    }
+  }
+
+  private boolean hasOnlyContentBefore(
+      final Review review,
+      final boolean hasPhotos,
+      final boolean newPhotos){
+    return !review.getContent().isEmpty() && !hasPhotos && newPhotos;
+  }
+
+  private boolean isDeletePhotoAll(
+      final Review review,
+      final boolean hasPhotos
+      ){
+    return !review.getContent().isEmpty() && hasPhotos && review.getAttachedPhotos().isEmpty();
+  }
+
+
   public EventResponseDto delete(final EventRequestDto dto){
+
+    Review review = reviewRepository.findById(dto.getReviewId())
+        .orElseThrow(() -> new ResourceNotFoundException("reviewId: " + dto.getReviewId() + "cannot be found"));
+
+    for(Point point : pointRepository.findByReviewId(review.getId())){
+      point.retrieve();
+    }
+
+    reviewRepository.deleteById(review.getId());
+
     return new EventResponseDto();
   }
 }

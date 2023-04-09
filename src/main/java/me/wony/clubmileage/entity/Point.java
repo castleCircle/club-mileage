@@ -33,6 +33,8 @@ public class Point extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private PointType type;
 
+  private Boolean status;
+
   private Integer amount;
 
   @Builder
@@ -63,6 +65,10 @@ public class Point extends BaseEntity{
         .type(PointType.REVIEW)
         .amount(amount)
         .build();
+  }
+
+  public void retrieve(){
+    status = false;
   }
 
 }
