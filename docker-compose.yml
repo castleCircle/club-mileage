@@ -1,15 +1,26 @@
-version: '3.8'
+version: '3'
 
 services:
-  db:
+  mysql:
     image: mysql:8.0.28
     platform: linux/amd64
     environment:
       - MYSQL_DATABASE=club
+      - MYSQL_ROOT_HOST=%
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_USER=club
       - MYSQL_PASSWORD=club
+      - TZ=Asia/Seoul
+    command: [ '--init-file=/data/application/mysql-init.sql', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci' ]
     ports:
       - '3306:3306'
+    networks:
+      - storenet
+    restart: always
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql-init.sql:/data/application/mysql-init.sql
+
+networks:
+  storenet:
+    driver: bridge
