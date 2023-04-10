@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler({ReviewValidationException.class,UnsupportedOperationException.class})
+  @ExceptionHandler(ReviewValidationException.class)
   public ResponseEntity<ApiResponse<Void>> handleReviewValidationException(
       final HttpServletRequest request,
-      final ResourceNotFoundException ex) {
+      final ReviewValidationException ex) {
 
     log.error("ReviewValidationException {}\n", request.getRequestURI(), ex);
 
