@@ -1,5 +1,11 @@
 use club;
 
+DROP TABLE IF EXISTS photo;
+DROP TABLE IF EXISTS point;
+DROP TABLE IF EXISTS review;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS place;
+
 create table users
 (
     id         binary(16)   NOT NULL,

@@ -2,6 +2,7 @@ package me.wony.clubmileage.service;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static me.wony.clubmileage.dto.response.EventResponse.ofEmpty;
 import static me.wony.clubmileage.entity.Point.createPointOfReview;
 import static me.wony.clubmileage.type.EventActionType.ofCode;
 import static org.springframework.util.StringUtils.hasText;
@@ -106,7 +107,9 @@ public class ReviewService {
       pointRepository.save(pointOfReview);
     }
 
-    return new EventResponse();
+    return EventResponse.builder()
+        .reviewId(review.getId())
+        .build();
   }
 
   private int calculatePoint(final EventRequest dto){
@@ -154,7 +157,9 @@ public class ReviewService {
 
     review.changeContent(dto.getContent());
 
-    return new EventResponse();
+    return EventResponse.builder()
+        .reviewId(review.getId())
+        .build();
   }
 
   private void changePhoto(final Review review, final EventRequest dto){
@@ -199,6 +204,6 @@ public class ReviewService {
 
     reviewRepository.deleteById(review.getId());
 
-    return new EventResponse();
+    return ofEmpty();
   }
 }
