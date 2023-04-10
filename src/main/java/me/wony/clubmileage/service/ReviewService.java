@@ -16,8 +16,8 @@ import me.wony.clubmileage.dao.PlaceRepository;
 import me.wony.clubmileage.dao.PointRepository;
 import me.wony.clubmileage.dao.ReviewRepository;
 import me.wony.clubmileage.dao.UserRepository;
-import me.wony.clubmileage.dto.request.EventRequestDto;
-import me.wony.clubmileage.dto.response.EventResponseDto;
+import me.wony.clubmileage.dto.request.EventRequest;
+import me.wony.clubmileage.dto.response.EventResponse;
 import me.wony.clubmileage.entity.Photo;
 import me.wony.clubmileage.entity.Place;
 import me.wony.clubmileage.entity.Point;
@@ -40,7 +40,8 @@ public class ReviewService {
   private final ReviewRepository reviewRepository;
   private final PointRepository pointRepository;
 
-  private Map<EventActionType, Function<EventRequestDto,EventResponseDto>> eventActionHandler;
+
+  private Map<EventActionType, Function<EventRequest, EventResponse>> eventActionHandler;
 
 
   @PostConstruct
@@ -53,16 +54,16 @@ public class ReviewService {
         );
   }
 
-  private EventResponseDto exception(){
+  private EventResponse exception(){
     throw new UnsupportedOperationException("요청 사항을 확인해주세요!");
   }
 
   @Transactional
-  public EventResponseDto handle(final EventRequestDto dto){
+  public EventResponse handle(final EventRequest dto){
     return eventActionHandler.getOrDefault(ofCode(dto.getAction()),(v)->exception()).apply(dto);
   }
 
-  public EventResponseDto create(final EventRequestDto dto){
+  public EventResponse create(final EventRequest dto){
 
     final User user = userRepository.findById(dto.getUserId())
         .orElseThrow(
@@ -105,10 +106,10 @@ public class ReviewService {
       pointRepository.save(pointOfReview);
     }
 
-    return new EventResponseDto();
+    return new EventResponse();
   }
 
-  private int calculatePoint(final EventRequestDto dto){
+  private int calculatePoint(final EventRequest dto){
     int point = 0;
 
     if(hasText(dto.getContent())){
@@ -126,11 +127,11 @@ public class ReviewService {
     return point;
   }
 
-  private boolean isFirstReview(final EventRequestDto dto){
+  private boolean isFirstReview(final EventRequest dto){
     return !reviewRepository.existsReviewAtPlace(dto.getPlaceId());
   }
 
-  public EventResponseDto update(final EventRequestDto dto){
+  public EventResponse update(final EventRequest dto){
 
     Review review = reviewRepository.findById(dto.getReviewId())
         .orElseThrow(() -> new ResourceNotFoundException("reviewId: " + dto.getReviewId() + "cannot be found"));
@@ -153,10 +154,10 @@ public class ReviewService {
 
     review.changeContent(dto.getContent());
 
-    return new EventResponseDto();
+    return new EventResponse();
   }
 
-  private void changePhoto(final Review review, final EventRequestDto dto){
+  private void changePhoto(final Review review, final EventRequest dto){
     review.getAttachedPhotos().stream()
         .filter(photo -> !dto.getAttachedPhotoIds().contains(photo.getId()))
         .collect(toUnmodifiableList())
@@ -185,17 +186,19 @@ public class ReviewService {
   }
 
 
-  public EventResponseDto delete(final EventRequestDto dto){
+  public EventResponse delete(final EventRequest dto){
 
     Review review = reviewRepository.findById(dto.getReviewId())
         .orElseThrow(() -> new ResourceNotFoundException("reviewId: " + dto.getReviewId() + "cannot be found"));
 
-    for(Point point : pointRepository.findByReviewId(review.getId())){
-      point.retrieve();
+    final Integer point = pointRepository.getPointByReviewId(review.getId());
+
+    if(point > 0){
+      pointRepository.save(createPointOfReview(review.getUser(),review,-point));
     }
 
     reviewRepository.deleteById(review.getId());
 
-    return new EventResponseDto();
+    return new EventResponse();
   }
 }

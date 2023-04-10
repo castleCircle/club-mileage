@@ -17,6 +17,7 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository{
 
   @Override
   public boolean existsDuplicateReviewAtPlace(final UUID userId, final UUID placeId) {
+
     return queryFactory
         .selectFrom(review)
         .where(userIdEq(userId),placeIdEq(placeId))

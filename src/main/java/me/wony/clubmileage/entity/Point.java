@@ -11,10 +11,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.wony.clubmileage.type.PointType;
 
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Point extends BaseEntity{
 
@@ -32,8 +34,6 @@ public class Point extends BaseEntity{
 
   @Enumerated(EnumType.STRING)
   private PointType type;
-
-  private Boolean status;
 
   private Integer amount;
 
@@ -65,10 +65,6 @@ public class Point extends BaseEntity{
         .type(PointType.REVIEW)
         .amount(amount)
         .build();
-  }
-
-  public void retrieve(){
-    status = false;
   }
 
 }

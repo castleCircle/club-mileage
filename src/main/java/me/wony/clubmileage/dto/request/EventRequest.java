@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
-public class EventRequestDto {
+public class EventRequest {
 
   @NotNull
   private String type;
